@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猫狗分类器</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+            transition: background-color 0.3s ease;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        @media (min-width: 768px) {
+             .container {
+            padding: 40px;
+            }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 2.2rem;
+            letter-spacing: 1px;
+             transition: color 0.3s ease;
+
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+          width : 100%;
+          margin-bottom: 15px;
+          text-align: left;
+        }
+          .form-group label{
+          display: block;
+            margin-bottom: 5px;
+          font-size: 1rem;
+          color: #555;
+          transition: color 0.3s ease;
+        }
+         input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: calc(100% - 22px);
+            box-sizing: border-box;
+             font-size: 1rem;
+             color: #555;
+             transition: border-color 0.3s ease,box-shadow 0.3s ease;
+        }
+
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.2);
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+             margin-bottom: 10px;
+        }
+         button:hover {
+            background-color: #43A047;
+            transform: scale(1.03);
+
+        }
+
+        button:active {
+            transform: scale(0.98);
+
+        }
+
+
+        p.error {
+            color: #d32f2f;
+            margin-top: 10px;
+            font-style: italic;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+         p.result {
+            color: #3f51b5;
+            font-weight: bold;
+            font-size: 1.3rem;
+             margin-top: 10px;
+             transition: color 0.3s ease;
+         }
+
+        #imagePreview {
+            max-width: 250px;
+            max-height: 250px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            object-fit: cover; /* Keep aspect ratio, crop as needed */
+             transition: opacity 0.3s ease;
+        }
+
+
+
+         /* Loading Animation */
+        #loading {
+             display: none;
+            position: relative;
+            width: 50px;
+            height: 50px;
+             margin: 0 auto;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+             animation: spin 1s linear infinite; /* Keep the animation running smoothly */
+             transition: opacity 0.3s ease;
+        }
+         @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+           #loading-container {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+               margin-top: 15px;
+                transition: opacity 0.3s ease;
+            }
+         @media (max-width: 400px){
+           h1{
+             font-size: 1.8rem;
+           }
+
+          .container{
+             padding:20px;
+             width : 95%;
+          }
+          button{
+            font-size: 1rem;
+            padding: 10px 20px
+          }
+          .form-group label{
+             font-size: .9rem;
+           }
+           input[type="file"]{
+             font-size: .9rem;
+            }
+
+
+         }
+
+
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>猫狗分类器</h1>
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            <div class="form-group">
+             <label for ="fileInput">选择一张图片</label>
+             <input type="file" name="file" id="fileInput" accept="image/*">
+            </div>
+            <button type="submit" id="submitButton">获取结果</button>
+        </form>
+
+        {% if message %}
+            <p class="error">{{ message }}</p>
+        {% endif %}
+
+        {% if result %}
+            <p class="result">预测结果: {{ result }}</p>
+        {% endif %}
+        <img id="imagePreview" src="#" alt="Image Preview" />
+
+       <div id ="loading-container">
+          <div id="loading"></div>
+       </div>
+
+    </div>
+    <script>
+      const fileInput = document.getElementById('fileInput');
+      const imagePreview = document.getElementById('imagePreview');
+       const loading = document.getElementById('loading');
+       const loadingContainer = document.getElementById('loading-container')
+        const submitButton = document.getElementById('submitButton');
+
+       fileInput.addEventListener('change', function() {
+           const file = this.files[0];
+            if (file) {
+                 const reader = new FileReader();
+
+                  reader.onload = function(e) {
+                     imagePreview.src = e.target.result;
+                     imagePreview.style.display = 'block'; // Show preview
+                  };
+
+            reader.readAsDataURL(file);
+            } else {
+               imagePreview.style.display = 'none'; // Hide preview if no file
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+          event.preventDefault();
+           imagePreview.style.display = 'none'; //Hide image when submitting
+          loading.style.display ='block';
+          loadingContainer.style.display ='';
+           loading.style.opacity ='1';
+           loadingContainer.style.opacity='1';
+          submitButton.disabled = true;
+           submitButton.textContent ="Classifying..."
+
+          const form =  event.target;
+          const formData = new FormData(form);
+
+          fetch('/',{
+            method :'POST',
+              body:formData
+           }).then(response =>{
+             if(response.ok){
+               return response.text()
+              }
+              throw new Error('Network response was not ok');
+
+             }).then(data=>{
+               loading.style.opacity ='0';
+                loadingContainer.style.opacity='0';
+                setTimeout(()=>{
+                      loading.style.display ='none';
+                       loadingContainer.style.display ='none';
+                       submitButton.disabled = false;
+                       submitButton.textContent ="获取结果";
+                      form.innerHTML = data;
+                    const scriptTags = form.querySelectorAll('script');
+                      scriptTags.forEach(script =>{
+                      eval(script.innerHTML);
+                      })
+                 },300)
+
+                 document.querySelector('input[type="file"]').onchange = function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.getElementById('imagePreview');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+
+              
+
+        });
+    </script>
+</body>
+</html>
